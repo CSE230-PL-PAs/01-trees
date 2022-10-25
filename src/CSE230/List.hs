@@ -35,9 +35,10 @@ data Dir = DirL | DirR
 -- [1,2,3,4,5]
 
 pad :: Dir -> Int -> a -> [a] -> [a]
-pad dir n x ys = if dir == DirL
-                    then clone (n - length ys) x ++ ys
-                    else ys ++ clone (n - length ys) x
+pad dir n x ys
+  | n <= length ys = ys
+  | dir == DirL = clone (n - length ys) x ++ ys
+  | otherwise = ys ++ clone (n - length ys) x
 
 
 -------------------------------------------------------------------------------
