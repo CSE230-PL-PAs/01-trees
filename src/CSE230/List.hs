@@ -40,6 +40,11 @@ pad dir n x ys
   | dir == DirL = (clone (n - (length ys)) x) ++ ys
   | otherwise = ys ++ (clone (n - (length ys)) x)
 
+padX :: Dir -> Int -> a -> [a] -> [a]
+padX dir n x ys
+  | dir == DirL = (clone n x) ++ ys
+  | otherwise = ys ++ (clone n x)
+
 -------------------------------------------------------------------------------
 -- | 'isSubSequence s1 s2' returns True if `s1` is a sub-sequence of `s2` i.e.
 --   if `s1` can be obtained by deleting some elements of `s2`
