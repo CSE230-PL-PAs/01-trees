@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -Wno-unused-top-binds #-}
 module CSE230.Doc
   (
     -- * A document type 

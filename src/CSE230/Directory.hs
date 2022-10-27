@@ -168,8 +168,8 @@ srcDir = Sub "src"
 -- <BLANKLINE>
 --
 
-dirDoc :: Dir FilePath -> Doc 
-dirDoc (Fil f)    = error "fill this in"
+dirDoc :: Dir FilePath -> Doc
+dirDoc (Fil f)    = doc f
 dirDoc (Sub f ds) = error "fill this in"
 
 
@@ -211,8 +211,9 @@ foldDir f = go []
 
 allFiles :: Dir FilePath -> [FilePath]
 allFiles dir = reverse (foldDir f [] dir)
-  where 
-      f      = error "fill this in"
+  where
+      f _ r (File a)   = a : r
+      f _ r (SubDir _) = r
 
 
 -------------------------------------------------------------------------------
@@ -225,7 +226,8 @@ allFiles dir = reverse (foldDir f [] dir)
 allDirs :: Dir FilePath -> [FilePath]
 allDirs dir = reverse (foldDir f [] dir)
   where
-      f = error "fill this in"
+      f _ r (File _)   = r
+      f _ r (SubDir a) = a : r
 
 
 -------------------------------------------------------------------------------
@@ -241,7 +243,7 @@ findFiles :: String -> Dir FilePath -> [FilePath]
 findFiles sub dir = reverse (foldDir f [] dir)
    where
       f = error "fill this in"
-    
+
 
 -------------------------------------------------------------------------------
 -- | 'build path' constructing the Directory on the filesystem rooted at 'path'

@@ -86,7 +86,7 @@ intersp :: a -> [a] -> [a]
 intersp s xs = foldr f base xs
   where
     base     = [s]
-    f x r    = s:x:r
+    f x r    = s : x : r
 
 -------------------------------------------------------------------------------
 -- Higher Order: iter
