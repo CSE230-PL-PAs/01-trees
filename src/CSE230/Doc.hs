@@ -144,6 +144,8 @@ vcatR (D l1) (D l2)
 -- aaaaa
 --
 hcatT :: Doc -> Doc -> Doc
+hcatT (D []) d2 = d2
+hcatT d1 (D []) = d1
 hcatT (D l1) (D l2) 
   | h2 <= h1 = D (zipWith (++) (correctList l1) (elongateList DirR h1 l2))
   | otherwise = D (zipWith (++) (correctList (elongateList DirR h1 l1)) l2)
@@ -175,6 +177,8 @@ elongate dir h (D ls) = D (pad dir h "" ls)
 -- aaaaabbb
 --
 hcatB :: Doc -> Doc -> Doc
+hcatB (D []) d2 = d2
+hcatB d1 (D []) = d1
 hcatB (D l1) (D l2) 
   | h2 <= h1 = D (zipWith (++) (correctList l1) (elongateList DirL h1 l2))
   | otherwise = D (zipWith (++) (correctList (elongateList DirL h1 l1)) l2)

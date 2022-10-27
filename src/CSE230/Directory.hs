@@ -165,13 +165,51 @@ srcDir = Sub "src"
 -- │   ├── Htdp.hs
 -- │   └── Main.hs
 -- └── stack.yaml
--- <BLANKLINE>
 --
 
-dirDoc :: Dir FilePath -> Doc 
-dirDoc (Fil f)    = error "fill this in"
-dirDoc (Sub f ds) = error "fill this in"
+-- >>> dirDoc srcDir
+-- src
+-- ├── CSE230
+-- │   ├── Directory.hs
+-- │   ├── Doc.hs
+-- │   ├── Graphics.hs
+-- │   ├── List.hs
+-- │   └── Shapes.hs
+-- ├── Htdp
+-- │   ├── Combinator.hs
+-- │   ├── Data
+-- │   │   └── Image.hs
+-- │   ├── README.md
+-- │   └── Shape.hs
+-- ├── Htdp.hs
+-- └── Main.hs
 
+tDir :: Dir FilePath
+tDir = Sub "src"
+         [ Sub "CSE230" [ Fil "Directory.hs"]]
+-- >>> dirDoc tDir
+-- src
+-- └── CSE230
+--     └── Directory.hs
+dirDoc :: Dir FilePath -> Doc 
+dirDoc (Fil f)    = doc f
+dirDoc (Sub f ds) = vcatL (doc f) (dirsDoc ds (doc ""))
+-- vcatL (doc f) (foldr vcatL empty (map dirDoc ds))
+
+dirsDoc :: [Dir FilePath] -> Doc -> Doc
+dirsDoc [] _ = empty
+dirsDoc ((Fil f):xs) p
+  | length xs == 0 = vcatL (hcatB prefixSingle (doc f)) (dirsDoc xs p)
+  | otherwise = vcatL (hcatB prefixMulti (doc f)) (dirsDoc xs p)
+    where
+      prefixSingle = (hcatB p singleFileDash)
+      prefixMulti = (hcatB p multiFileDash)
+dirsDoc ((Sub f ds):xs) p
+  | length xs == 0 = vcatL (vcatL (hcatB prefixSingle (doc f)) (dirsDoc ds (hcatB (doc "    ") p))) (dirsDoc xs p)
+  | otherwise = vcatL (vcatL (hcatB prefixMulti (doc f)) (dirsDoc ds (hcatB (doc "│   ") p))) (dirsDoc xs p)
+    where
+      prefixSingle = (hcatT p singleFileDash)
+      prefixMulti = (hcatT p multiFileDash)
 
 -------------------------------------------------------------------------------
 -- | Some useful 'Doc's--------------------------------------------------------
@@ -187,6 +225,12 @@ angle = doc "└"
 
 bar :: Doc
 bar = doc "│"
+
+singleFileDash :: Doc
+singleFileDash = hcatB angle dash
+
+multiFileDash :: Doc
+multiFileDash = hcatB stile dash
 
 -------------------------------------------------------------------------------
 -- | A 'fold' for directories
