@@ -5,6 +5,9 @@ import CSE230.List hiding (Dir)
 import qualified Data.List as L
 import System.FilePath      (takeDirectory, takeFileName, (</>))
 import System.Directory     (doesFileExist, listDirectory)
+import Data.Foldable (Foldable(foldr'))
+import Data.List (sortBy)
+import Data.Char (toLower)
 
 -------------------------------------------------------------------------------
 -- | Top-level "main" function
@@ -250,13 +253,14 @@ foldDir f = go []
 -- | 'allFiles dir' returns a list of all the Files in 'dir'
 -------------------------------------------------------------------------------
 -- >>> allFiles example
--- ["COLLABORATORS.md","LICENSE","Makefile","README.md","cse230-tree.cabal","carpet.png","chess1.png","chess2.png","rainbow.png","triangle1.png","triangle2.png","Directory.hs","Doc.hs","Graphics.hs","List.hs","Shapes.hs","Combinator.hs","Image.hs","README.md","Shape.hs","Htdp.hs","Main.hs""stack.yaml"]
+-- ["COLLABORATORS.md","LICENSE","Makefile","README.md","cse230-tree.cabal","carpet.png","chess1.png","chess2.png","rainbow.png","triangle1.png","triangle2.png","Directory.hs","Doc.hs","Graphics.hs","List.hs","Shapes.hs","Combinator.hs","Image.hs","README.md","Shape.hs","Htdp.hs","Main.hs","stack.yaml"]
 --
 
 allFiles :: Dir FilePath -> [FilePath]
 allFiles dir = reverse (foldDir f [] dir)
-  where 
-      f      = error "fill this in"
+  where
+      f _ r (File a) = a:r
+      f _ r _ = r
 
 
 -------------------------------------------------------------------------------
@@ -265,11 +269,14 @@ allFiles dir = reverse (foldDir f [] dir)
 --
 -- >>> allDirs example
 -- [".","out","src","CSE230","Htdp","Data"]
+-- >>> allDirs srcDir
+-- ["src","CSE230","Htdp","Data"]
 
 allDirs :: Dir FilePath -> [FilePath]
 allDirs dir = reverse (foldDir f [] dir)
   where
-      f = error "fill this in"
+      f _ r (SubDir a) = a:r
+      f _ r _ = r
 
 
 -------------------------------------------------------------------------------
@@ -278,25 +285,42 @@ allDirs dir = reverse (foldDir f [] dir)
 -------------------------------------------------------------------------------
 --
 -- >>> findFiles ".hs" example
--- ["./src/CSE230/Directory.hs","./src/CSE230/Doc.hs","./src/CSE230/Graphics.hs","./src/CSE230/List.hs","./src/CSE230/Shapes.hs","./src/CSE230/Directory.hs","./src/Htdp/Combinator.hs","./src/htdp/Data/Image.hs","./src/Htdp/README.md","./src/htdp/Shape.hs","./src/Htdp.hs","./src/Main.hs"]
---
+-- ["./src/CSE230/Directory.hs","./src/CSE230/Doc.hs","./src/CSE230/Graphics.hs","./src/CSE230/List.hs","./src/CSE230/Shapes.hs","./src/Htdp/Combinator.hs","./src/Htdp/Data/Image.hs","./src/Htdp/Shape.hs","./src/Htdp.hs","./src/Main.hs"]
+-- >>> findFiles ".png" example
+-- ["./out/carpet.png","./out/chess1.png","./out/chess2.png","./out/rainbow.png","./out/triangle1.png","./out/triangle2.png"]
 
 findFiles :: String -> Dir FilePath -> [FilePath]
 findFiles sub dir = reverse (foldDir f [] dir)
    where
-      f = error "fill this in"
-    
+      f stk r (File a)
+        | L.isInfixOf sub a = ((L.foldl' (</>) "" (reverse stk)) ++ "/" ++ a):r
+        | otherwise = r
+      f _ r _ = r
 
 -------------------------------------------------------------------------------
 -- | 'build path' constructing the Directory on the filesystem rooted at 'path'
 -------------------------------------------------------------------------------
 --
 -- >>> build "src"
--- Sub "src" [Sub "CSE230" [Fil "Directory.hs", Fil "Doc.hs", Fil "Graphics.hs", Fil "List.hs", Fil "Shapes.hs"], Sub "Htdp" [Fil "Combinator.hs", Sub "Data" [Fil "Image.hs"], Fil "README.md", Fil "Shape.hs"], Fil "Htdp.hs", Fil "Main.hs"]
+-- Sub "src" [Sub "CSE230" [Fil "Directory.hs",Fil "Doc.hs",Fil "Graphics.hs",Fil "List.hs",Fil "Shapes.hs"],Sub "Htdp" [Fil "Combinator.hs",Sub "Data" [Fil "Image.hs"],Fil "README.md",Fil "Shape.hs"],Fil "Htdp.hs",Fil "Main.hs"]
 --
 
 build :: FilePath -> IO (Dir FilePath)
-build path = error "fill this in"
+build path = buildPath "" path
+
+buildPath :: FilePath -> FilePath -> IO (Dir FilePath)
+buildPath prefix path = do
+  let curPath = prefix ++ path
+  filenames <- listDirectory curPath
+  let filepaths = map ((curPath ++ "/") ++) filenames
+  isFiles <- mapM doesFileExist filepaths
+  let files = [Fil filename | (filename, isFile) <- (zip filenames isFiles), isFile]
+  dirs <- sequence [buildPath (curPath ++ "/") dirname | (dirname, isFile) <- (zip filenames isFiles), not isFile]
+  return (Sub path (L.sortOn getPath (dirs ++ files)))
+
+getPath :: (Dir FilePath) -> FilePath
+getPath (Fil f) = f
+getPath (Sub f _) = f
 
 lshow :: Doc -> [String]
 lshow = lines . show
