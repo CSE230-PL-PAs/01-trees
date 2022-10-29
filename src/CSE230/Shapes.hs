@@ -21,13 +21,17 @@ main = do
 mkRainbow :: IO ()
 mkRainbow = save "img/rainbow.png" rainbow
 
+-- overlay - overlay the shape upon the original image
+-- list!!x - indices access like list[x]
+-- circle r t c - draw a circle with radius r, type t and color c
+
 rainbow :: Image
 rainbow = foldr1 f xs
   where
     xs  = map g [1..7]
-    f   = error "fill this in"
-    g   = error "fill this in"
-
+    f   = overlay
+    g x = circle (x*20) solid (rainbow_colors!!(round (x-1)))
+    rainbow_colors = [violet, blue, cyan, green, yellow, orange, red]
 
 -------------------------------------------------------------------------------
 -- | ChessBoard with 'clone'
@@ -56,7 +60,8 @@ mkChess2   = save "img/chess2.png"   chessBoard2
 chessBoard2 :: Image
 chessBoard2 = iter 2 f base
   where
-    f       = error "fill this in"
+    f     x = aboves [ besides [ x, x ]
+                     , besides [ x, x ] ]
     base    = gridSquare
 
 
@@ -71,7 +76,8 @@ sierpinskiTriangle1 = triRec 8
 
 triRec :: Int -> Image
 triRec 0 = blueTriangle
-triRec n = error "fill this in"
+triRec n = aboves [ besides [ triRec (n-1) ]
+                   ,besides [ triRec (n-1), triRec (n-1) ] ]
 
 blueTriangle :: Image
 blueTriangle = triangle 5 solid fgCol
@@ -85,7 +91,8 @@ mkTriangle2 = save "img/triangle2.png" sierpinskiTriangle2
 sierpinskiTriangle2 :: Image
 sierpinskiTriangle2 = iter 8 f base
  where
-   f               = error "fill this in"
+   f             x = aboves [ besides [ x ]
+                             ,besides [ x, x ] ]
    base            = blueTriangle
 
 
@@ -98,7 +105,13 @@ mkCarpet   = save "img/carpet.png" sierpinskiCarpet
 sierpinskiCarpet :: Image
 sierpinskiCarpet = iter 4 f base
   where
-    f            = error "fill this in"
+    f         x  = overlay (aboves [ besides [ whiteEdgedSquare, whiteEdgedSquare, whiteEdgedSquare ],
+                                      besides [ whiteEdgedSquare, whiteSquare, whiteEdgedSquare ],
+                                      besides [ whiteEdgedSquare, whiteEdgedSquare, whiteEdgedSquare ] ])
+                            (square ((width x + 1) * 3 + 1) solid bgCol)
+      where
+        whiteEdgedSquare = overlay x (square (width x + 1) solid bgCol)
+        whiteSquare      = square (width x + 1) solid bgCol
     base         = blueSquare
 
 blueSquare :: Image

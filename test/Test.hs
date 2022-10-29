@@ -31,11 +31,15 @@ probList sc = testGroup "List" [
   scoreTest ((\_ -> pad DirR 3 0 [1,2,3,4,5]), (),  [1,2,3,4,5], 1, "pad-4"),
   scoreTest ((\_ -> isSubSequence "cat" "dog"), (), False, 1, "issub-1"),
   scoreTest ((\_ -> isSubSequence "cat" "craptasticdog"), (), True, 1, "issub-2"),
+  scoreTest ((\_ -> isSubSequence "cat" "ziangcatquan"), (), True, 1, "issub-3"),
   scoreTest ((\_ -> maximum 99 []), (), 99, 1, "maximum-1"),
   scoreTest ((\_ -> maximum 99 [90, 100, 200, 52]), (), 200, 1, "maximum-2"),
   scoreTest ((\_ -> intersp '|' "chewbacca"), (), "|c|h|e|w|b|a|c|c|a|", 1, "intersp-1"),
+  scoreTest ((\_ -> intersp 3 [1,2,3,4,5,6]), (), [3,1,3,2,3,3,3,4,3,5,3,6,3], 1, "intersp-num"),
   scoreTest ((\_ -> intersp "yo!" ["which", "way", "is", "the", "park"]), (), ["yo!","which","yo!","way","yo!","is","yo!","the","yo!","park","yo!"], 1, "intersp-2"),
-  scoreTest ((\_ -> iter 10 (\x -> 2 * x) 1 ), (), 1024, 3, "iter-1")
+  scoreTest ((\_ -> iter 0 (\x -> 2 * x) 1 ), (), 1, 3, "iter-0"),
+  scoreTest ((\_ -> iter 10 (\x -> 2 * x) 1 ), (), 1024, 3, "iter-1"),
+  scoreTest ((\_ -> iter (-88) (\x -> 2 * x) 1 ), (), 1, 3, "iter-2")
   ]
   where
     scoreTest :: (Show b, Eq b) => (a -> b, a, b, Int, String) -> TestTree
@@ -61,11 +65,15 @@ probShapes sc = testGroup "Shapes" [
 probDoc :: Score -> TestTree
 probDoc sc = testGroup "Doc" [
   scoreTest ((\_ -> lshow (foldr vcatL empty animals)), (), ["cat","horse","mongoose"], 1, "vcatL"),
+  scoreTest ((\_ -> lshow (foldr vcatL empty [empty])), (), [], 1, "vcatL-empty"),
   scoreTest ((\_ -> lshow (foldr vcatR empty animals)), (), ["     cat","   horse","mongoose"], 2, "vcatR"),
+  scoreTest ((\_ -> lshow (foldr vcatR empty [empty])), (), [], 2, "vcatR-empty"),
   scoreTest ((\_ -> lshow $ hcatT aDoc lineDoc), (), ["a    <----- HERE","aaa  ","aaaaa"], 2, "hcatT-1"),
   scoreTest ((\_ -> lshow $ hcatT aDoc bDoc), (), ["a    b","aaa  bbb","aaaaa"], 2, "hcatT-2"),
+  scoreTest ((\_ -> lshow $ hcatT empty empty), (), [], 2, "hcatT-empty"),
   scoreTest ((\_ -> lshow $ hcatB aDoc lineDoc), (), ["a    ","aaa  ","aaaaa<----- HERE"], 2, "hcatB-1"),
   scoreTest ((\_ -> lshow $ hcatB aDoc bDoc), (), ["a    ","aaa  b","aaaaabbb"], 2, "hcatB-2"),
+  scoreTest ((\_ -> lshow $ hcatB empty empty), (), [], 2, "hcatB-empty"),
   scoreTest ((\_ -> lshow $ foldr vcatL empty triangles), (), ["*","***","*****","*    *","***  ***","**********","*    *    *","***  ***  ***","***************"], 3, "vcatL-1"),
   scoreTest ((\_ -> lshow $ foldr vcatR empty triangles), (), ["          *","          ***","          *****","     *    *","     ***  ***","     **********","*    *    *","***  ***  ***","***************"], 3, "vcatR-1")
   ]

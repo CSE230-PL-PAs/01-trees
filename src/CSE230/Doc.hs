@@ -1,3 +1,4 @@
+{-# LANGUAGE InstanceSigs #-}
 module CSE230.Doc 
   ( 
     -- * A document type 
@@ -68,10 +69,10 @@ animals = [ doc "cat"
 -- a
 -- aaa
 -- aaaaa
--- <BLANKLINE>
 --
 
 instance Show Doc where
+  show :: Doc -> String
   show (D ls) = unlines ls 
 
 -------------------------------------------------------------------------------
@@ -103,11 +104,10 @@ height (D ls) = length ls
 -- cat
 -- horse
 -- mongoose
--- <BLANKLINE>
---
+-- >>> vcatL empty empty
 
 vcatL :: Doc -> Doc -> Doc
-vcatL d1 d2 = error "fill this in"
+vcatL (D l1) (D l2) = (D (l1 ++ l2))
 
 -------------------------------------------------------------------------------
 -- | Vertical Concatenation aligned at Right
@@ -117,11 +117,16 @@ vcatL d1 d2 = error "fill this in"
 --      cat
 --    horse
 -- mongoose
--- <BLANKLINE>
 --
 
 vcatR :: Doc -> Doc -> Doc
-vcatR d1 d2 = error "fill this in"
+vcatR (D l1) (D l2)
+  | w1 <= w2 = D ((map (padX DirL (w2 - w1) space) l1) ++ l2)
+  | otherwise = D (l1 ++ (map (padX DirL (w1 - w2) space) l2))
+    where
+      w1 = width (D l1)
+      w2 = width (D l2)
+      space = ' '
 
 -------------------------------------------------------------------------------
 -- | Horizontal Concatenation aligned at Top
@@ -132,16 +137,27 @@ vcatR d1 d2 = error "fill this in"
 -- a    <----- HERE
 -- aaa  
 -- aaaaa
--- <BLANKLINE>
 --
 -- >>> hcatT aDoc bDoc
 -- a    b
 -- aaa  bbb
 -- aaaaa
--- <BLANKLINE>
 --
 hcatT :: Doc -> Doc -> Doc
-hcatT d1 d2 = error "fill this in"
+hcatT (D []) d2 = d2
+hcatT d1 (D []) = d1
+hcatT (D l1) (D l2) 
+  | h2 <= h1 = D (zipWith (++) (correctList l1) (elongateList DirR h1 l2))
+  | otherwise = D (zipWith (++) (correctList (elongateList DirR h1 l1)) l2)
+    where
+      h1 = height (D l1)
+      h2 = height (D l2)
+      correctList = map (pad DirR w1 space)
+      w1 = width (D l1)
+      space = ' '
+
+elongateList :: Dir -> Int -> [String] -> [String]
+elongateList dir h l = pad dir h "" l
 
 elongate :: Dir -> Int -> Doc -> Doc
 elongate dir h (D ls) = D (pad dir h "" ls) 
@@ -154,16 +170,24 @@ elongate dir h (D ls) = D (pad dir h "" ls)
 -- a    
 -- aaa  
 -- aaaaa<----- HERE
--- <BLANKLINE>
 --
 -- >>> hcatB aDoc bDoc
 -- a    
 -- aaa  b
 -- aaaaabbb
--- <BLANKLINE>
 --
 hcatB :: Doc -> Doc -> Doc
-hcatB d1 d2 = error "fill this in"
+hcatB (D []) d2 = d2
+hcatB d1 (D []) = d1
+hcatB (D l1) (D l2) 
+  | h2 <= h1 = D (zipWith (++) (correctList l1) (elongateList DirL h1 l2))
+  | otherwise = D (zipWith (++) (correctList (elongateList DirL h1 l1)) l2)
+    where
+      h1 = height (D l1)
+      h2 = height (D l2)
+      correctList = map (pad DirR w1 space)
+      w1 = width (D l1)
+      space = ' '
 
 triangle :: Doc
 triangle = D 
@@ -181,7 +205,6 @@ triangle = D
 -- *    *    *
 -- ***  ***  ***
 -- ***************
--- <BLANKLINE>
 --
 
 -- >>> foldr vcatR empty triangles
@@ -194,7 +217,6 @@ triangle = D
 -- *    *    *
 -- ***  ***  ***
 -- ***************
--- <BLANKLINE>
 --
 triangles :: [Doc]
 triangles = [ triangle
