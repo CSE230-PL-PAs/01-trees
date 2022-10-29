@@ -1,10 +1,11 @@
-module CSE230.Doc 
-  ( 
+{-# OPTIONS_GHC -Wno-unused-top-binds #-}
+module CSE230.Doc
+  (
     -- * A document type 
-    Doc 
-    
+    Doc
+
     -- * Constructors
-  , empty, doc 
+  , empty, doc
 
     -- * Accessors
   , width, height
@@ -16,15 +17,15 @@ module CSE230.Doc
   , vcatL, vcatR, hcatB, hcatT
 
     -- * Properties
-  , prop_hcatT_width  
-  , prop_hcatT_height 
-  , prop_hcatB_width  
-  , prop_hcatB_height 
-  , prop_vcatL_width  
-  , prop_vcatR_width  
-  , prop_vcatL_height 
-  , prop_vcatR_height 
-  
+  , prop_hcatT_width
+  , prop_hcatT_height
+  , prop_hcatB_width
+  , prop_hcatB_height
+  , prop_vcatL_width
+  , prop_vcatR_width
+  , prop_vcatL_height
+  , prop_vcatR_height
+
   ) where
 
 import qualified Test.QuickCheck as QC
@@ -50,7 +51,7 @@ aDoc = D [ "a"
 
 bDoc :: Doc
 bDoc = D [ "b"
-         , "bbb"] 
+         , "bbb"]
 
 lineDoc :: Doc
 lineDoc = doc "<----- HERE"
@@ -58,7 +59,7 @@ lineDoc = doc "<----- HERE"
 animals :: [Doc]
 animals = [ doc "cat"
           , doc "horse"
-          , doc "mongoose" 
+          , doc "mongoose"
           ]
 
 -------------------------------------------------------------------------------
@@ -72,7 +73,7 @@ animals = [ doc "cat"
 --
 
 instance Show Doc where
-  show (D ls) = unlines ls 
+  show (D ls) = unlines ls
 
 -------------------------------------------------------------------------------
 -- | Generating Random Docs
@@ -87,7 +88,7 @@ instance QC.Arbitrary Doc where
 -- 5
 
 width :: Doc -> Int
-width (D ls) = maximum 0 (map length ls) 
+width (D ls) = maximum 0 (map length ls)
 
 -- >>> height aDoc
 -- 3
@@ -107,7 +108,7 @@ height (D ls) = length ls
 --
 
 vcatL :: Doc -> Doc -> Doc
-vcatL d1 d2 = error "fill this in"
+vcatL d1 d2 = doc (show d1 ++ show d2)
 
 -------------------------------------------------------------------------------
 -- | Vertical Concatenation aligned at Right
@@ -121,7 +122,13 @@ vcatL d1 d2 = error "fill this in"
 --
 
 vcatR :: Doc -> Doc -> Doc
-vcatR d1 d2 = error "fill this in"
+vcatR d1 d2 = D (foldr f base xs ++ foldr g base ys)
+  where
+    f    = \x xs -> (clone (width d2 - width d1) ' ' ++ x) : xs
+    xs   = lines (show d1)
+    g    = \y ys -> (clone (width d1 - width d2) ' ' ++ y) : ys
+    ys   = lines (show d2)
+    base = []
 
 -------------------------------------------------------------------------------
 -- | Horizontal Concatenation aligned at Top
@@ -141,10 +148,19 @@ vcatR d1 d2 = error "fill this in"
 -- <BLANKLINE>
 --
 hcatT :: Doc -> Doc -> Doc
-hcatT d1 d2 = error "fill this in"
+hcatT d1 d2 = D (zipWith f xs ys)
+  where
+    f    = (++)
+    xs   = foldr g base (lines (show (elongate DirR (height d2) d1)))
+    g    = \x xs -> pad DirR (width d1) ' ' x : xs
+    ys   = lines (show (elongate DirR (height d1) d2))
+    base = []
 
+-------------------------------------------------------------------------------
+-- | elongate pad with "" which is actually adding new lines
+-------------------------------------------------------------------------------
 elongate :: Dir -> Int -> Doc -> Doc
-elongate dir h (D ls) = D (pad dir h "" ls) 
+elongate dir h (D ls) = D (pad dir h "" ls)
 
 -------------------------------------------------------------------------------
 -- | Horizontal Concatenation aligned at Bottom
@@ -163,10 +179,16 @@ elongate dir h (D ls) = D (pad dir h "" ls)
 -- <BLANKLINE>
 --
 hcatB :: Doc -> Doc -> Doc
-hcatB d1 d2 = error "fill this in"
+hcatB d1 d2 = D (zipWith f xs ys)
+  where
+    f    = (++)
+    xs   = foldr g base (lines (show (elongate DirL (height d2) d1)))
+    g    = \x xs -> pad DirR (width d1) ' ' x : xs
+    ys   = lines (show (elongate DirL (height d1) d2))
+    base = []
 
 triangle :: Doc
-triangle = D 
+triangle = D
   [ "*"
   , "***"
   , "*****" ]
