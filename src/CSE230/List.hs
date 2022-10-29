@@ -72,7 +72,7 @@ isSubSequence xxs@(x:xs) (y:ys)
 -- 200
 
 maximum :: (Ord a) => a -> [a] -> a 
-maximum d xs = foldr f base xs  
+maximum d = foldr f base  
   where 
     base     = d
     f        = max
@@ -87,7 +87,7 @@ maximum d xs = foldr f base xs
 -- ["yo!","which","yo!","way","yo!","is","yo!","the","yo!","park","yo!"]
 
 intersp :: a -> [a] -> [a]
-intersp s xs = foldr f base xs
+intersp s = foldr f base
   where 
     base     = [s]
     f x r    = base ++ [x] ++ r
@@ -99,5 +99,6 @@ intersp s xs = foldr f base xs
 -- 1024
 
 iter :: Int -> (a -> a) -> a -> a
-iter 0 _ x = x
-iter n f x = iter (n-1) f (f x)
+iter n f x
+  | n > 0 = iter (n-1) f (f x)
+  | otherwise = x

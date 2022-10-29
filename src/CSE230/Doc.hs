@@ -104,7 +104,7 @@ height (D ls) = length ls
 -- cat
 -- horse
 -- mongoose
---
+-- >>> vcatL empty empty
 
 vcatL :: Doc -> Doc -> Doc
 vcatL (D l1) (D l2) = (D (l1 ++ l2))

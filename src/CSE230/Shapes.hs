@@ -105,13 +105,14 @@ mkCarpet   = save "img/carpet.png" sierpinskiCarpet
 sierpinskiCarpet :: Image
 sierpinskiCarpet = iter 4 f base
   where
-    f          x = overlay (square ((width x) * 1.1) solid bgCol)
-                            (aboves [ besides [ whiteFramedSquare, whiteFramedSquare, whiteFramedSquare ],
-                            besides [ whiteFramedSquare, whiteFramedSquare, whiteFramedSquare ],
-                            besides [ whiteFramedSquare, whiteFramedSquare, whiteFramedSquare ] ])
+    f         x  = overlay (aboves [ besides [ whiteEdgedSquare, whiteEdgedSquare, whiteEdgedSquare ],
+                                      besides [ whiteEdgedSquare, whiteSquare, whiteEdgedSquare ],
+                                      besides [ whiteEdgedSquare, whiteEdgedSquare, whiteEdgedSquare ] ])
+                            (square ((width x + 1) * 3 + 1) solid bgCol)
       where
-        whiteFramedSquare = overlay x (square ((width x) * 1.1) solid bgCol)
+        whiteEdgedSquare = overlay x (square (width x + 1) solid bgCol)
+        whiteSquare      = square (width x + 1) solid bgCol
     base         = blueSquare
 
 blueSquare :: Image
-blueSquare =  square 10 solid fgCol
+blueSquare =  square 4 solid fgCol

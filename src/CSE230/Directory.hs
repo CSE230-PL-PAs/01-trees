@@ -170,6 +170,18 @@ srcDir = Sub "src"
 -- └── stack.yaml
 --
 
+tDir :: Dir FilePath
+tDir = Sub "src"
+         [ Sub "CSE230" [ Fil "Directory.hs"]]
+-- >>> dirDoc tDir
+-- src
+-- └── CSE230
+--     └── Directory.hs
+dirDoc :: Dir FilePath -> Doc 
+dirDoc (Fil f)    = doc f
+dirDoc (Sub f ds) = vcatL (doc f) (dirsDoc ds (doc ""))
+-- vcatL (doc f) (foldr vcatL empty (map dirDoc ds))
+
 -- >>> dirDoc srcDir
 -- src
 -- ├── CSE230
@@ -187,29 +199,17 @@ srcDir = Sub "src"
 -- ├── Htdp.hs
 -- └── Main.hs
 
-tDir :: Dir FilePath
-tDir = Sub "src"
-         [ Sub "CSE230" [ Fil "Directory.hs"]]
--- >>> dirDoc tDir
--- src
--- └── CSE230
---     └── Directory.hs
-dirDoc :: Dir FilePath -> Doc 
-dirDoc (Fil f)    = doc f
-dirDoc (Sub f ds) = vcatL (doc f) (dirsDoc ds (doc ""))
--- vcatL (doc f) (foldr vcatL empty (map dirDoc ds))
-
 dirsDoc :: [Dir FilePath] -> Doc -> Doc
 dirsDoc [] _ = empty
 dirsDoc ((Fil f):xs) p
-  | length xs == 0 = vcatL (hcatB prefixSingle (doc f)) (dirsDoc xs p)
+  | null xs = vcatL (hcatB prefixSingle (doc f)) (dirsDoc xs p)
   | otherwise = vcatL (hcatB prefixMulti (doc f)) (dirsDoc xs p)
     where
       prefixSingle = (hcatB p singleFileDash)
       prefixMulti = (hcatB p multiFileDash)
 dirsDoc ((Sub f ds):xs) p
-  | length xs == 0 = vcatL (vcatL (hcatB prefixSingle (doc f)) (dirsDoc ds (hcatB (doc "    ") p))) (dirsDoc xs p)
-  | otherwise = vcatL (vcatL (hcatB prefixMulti (doc f)) (dirsDoc ds (hcatB (doc "│   ") p))) (dirsDoc xs p)
+  | null xs = vcatL (vcatL (hcatB prefixSingle (doc f)) (dirsDoc ds (hcatB p (doc "    ")))) (dirsDoc xs p)
+  | otherwise = vcatL (vcatL (hcatB prefixMulti (doc f)) (dirsDoc ds (hcatB p (doc "│   ")))) (dirsDoc xs p)
     where
       prefixSingle = (hcatT p singleFileDash)
       prefixMulti = (hcatT p multiFileDash)
@@ -303,7 +303,6 @@ findFiles sub dir = reverse (foldDir f [] dir)
 --
 -- >>> build "src"
 -- Sub "src" [Sub "CSE230" [Fil "Directory.hs",Fil "Doc.hs",Fil "Graphics.hs",Fil "List.hs",Fil "Shapes.hs"],Sub "Htdp" [Fil "Combinator.hs",Sub "Data" [Fil "Image.hs"],Fil "README.md",Fil "Shape.hs"],Fil "Htdp.hs",Fil "Main.hs"]
---
 
 build :: FilePath -> IO (Dir FilePath)
 build path = buildPath "" path
